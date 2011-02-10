@@ -3,7 +3,7 @@ Lightnode
 
 An http internet server playground, designed to have unprecented control meet simplicity and functionality.
 
-Lightnode is an http (nodejs based) javascript library that aims to deliver the potential that node js makes available, in a offering similar to lighttpd or apache.  see <http://lightnode.ngspinners.com> for more info.
+Lightnode is an http (nodejs based) javascript library that aims to deliver the potential that node js makes available, in a offering similar to lighttpd or apache.  see <http://www.ngspinners.com/lightnode> for more info.
 
 
 Goals
