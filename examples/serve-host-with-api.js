@@ -1,6 +1,6 @@
 
 var http = require('http')
-var lightnode = require('code.ngspinners.com/lightnode/lightnode')
+var lightnode = require('../lightnode')
 
 
 // 1 - create and start the node ip server

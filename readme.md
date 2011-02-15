@@ -3,7 +3,7 @@ Lightnode
 
 An http internet server playground, designed to have unprecented control meet simplicity and functionality.
 
-Lightnode is an http (nodejs based) javascript library that aims to deliver the potential that node js makes available, in a offering similar to lighttpd or apache.  see <http://www.ngspinners.com/lightnode> for more info.
+Lightnode is an http (nodejs based) javascript library that aims to deliver the potential that node js makes available, in a offering similar to lighttpd or apache.  see <http://www.ngspinners.com/lightnode/> for more info.
 
 
 Goals
@@ -23,11 +23,21 @@ Mechanisms
 ----------
 
 * request delegation (server receives -> delegates -> emits request)
-* scaling server heirarchy (a section of requests can be delegated to a child server in the heirarchy)
-* pre request customization of heirarchy (the server objects in the heirarchy can be created and customized before any requests come in)
+* scaling server hierarchy (a section of requests can be delegated to a child server in the hierarchy)
+* pre request customization of hierarchy (the server objects in the hierarchy can be created and customized before any requests come in)
 * intercept requests directly from node before they go into the lightnode server
 * server locates a physical file given request (overridable)
 * serving logic can be bypassed and sendFile() function can be used directly
+
+
+Status
+------
+
+Works. Alpha phase. As efficient as lighttpd, unsure if it scales as far.
+
+Provides a nice framework for dynamic server applications (routing). Provides static file serving with caching, virtual hosts, some customization possible.
+
+Tutorials still to come.
 
 
 Examples

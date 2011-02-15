@@ -1,0 +1,43 @@
+This is ApacheBench, Version 2.3 <$Revision: 655654 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking www.ngspinners.com (be patient)
+
+
+Server Software:        lighttpd/1.4.24
+Server Hostname:        www.ngspinners.com
+Server Port:            80
+
+Document Path:          /home.html
+Document Length:        6865 bytes
+
+Concurrency Level:      100
+Time taken for tests:   0.109 seconds
+Complete requests:      500
+Failed requests:        0
+Write errors:           0
+Total transferred:      3598182 bytes
+HTML transferred:       3439365 bytes
+Requests per second:    4598.55 [#/sec] (mean)
+Time per request:       21.746 [ms] (mean)
+Time per request:       0.217 [ms] (mean, across all concurrent requests)
+Transfer rate:          32317.20 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    2   1.6      1      12
+Processing:     7   18   3.3     18      26
+Waiting:        6   17   4.0     18      24
+Total:         12   20   3.1     19      27
+
+Percentage of the requests served within a certain time (ms)
+  50%     19
+  66%     21
+  75%     22
+  80%     23
+  90%     24
+  95%     24
+  98%     25
+  99%     25
+ 100%     27 (longest request)

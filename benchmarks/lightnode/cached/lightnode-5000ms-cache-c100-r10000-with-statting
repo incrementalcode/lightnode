@@ -1,0 +1,43 @@
+This is ApacheBench, Version 2.3 <$Revision: 655654 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking www.ngspinners.com (be patient)
+
+
+Server Software:        
+Server Hostname:        www.ngspinners.com
+Server Port:            8081
+
+Document Path:          /home.html
+Document Length:        6878 bytes
+
+Concurrency Level:      100
+Time taken for tests:   3.321 seconds
+Complete requests:      10000
+Failed requests:        0
+Write errors:           0
+Total transferred:      69730000 bytes
+HTML transferred:       68780000 bytes
+Requests per second:    3011.17 [#/sec] (mean)
+Time per request:       33.210 [ms] (mean)
+Time per request:       0.332 [ms] (mean, across all concurrent requests)
+Transfer rate:          20504.79 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.6      0       7
+Processing:    14   33   3.8     32      58
+Waiting:       14   32   3.8     31      58
+Total:         14   33   3.7     32      58
+
+Percentage of the requests served within a certain time (ms)
+  50%     32
+  66%     33
+  75%     34
+  80%     34
+  90%     38
+  95%     41
+  98%     43
+  99%     46
+ 100%     58 (longest request)

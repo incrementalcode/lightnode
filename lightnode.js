@@ -89,7 +89,7 @@ var Server = type(EventEmitter, function() {
 	- getting a child server with any name will create it if it does not exist
 	- if you want to customize the serving of just a portion of the request, on initialization of this server, access a child server to create and customize it, then use delegation
 */
-var HeirarchicalServer = type(Server, function() {
+var HierarchicalServer = type(Server, function() {
 	
 	// should this accept a parent server?
 	this.constructor = function(fullName, name, parent) {
@@ -134,10 +134,10 @@ var HeirarchicalServer = type(Server, function() {
 
 /* 
 */
-var DelegatingServer = type(HeirarchicalServer, function() {
+var DelegatingServer = type(HierarchicalServer, function() {
 	
 	this.constructor = function() {
-		HeirarchicalServer.apply(this, arguments)
+		HierarchicalServer.apply(this, arguments)
 		// run the delegate function for each request
 		// if we don't want the server to do any delegation, we can override the delegate function with a noop (it is already a noop anyway).
 		// note: we make sure here that we lookup the delegate function for each request, so that it can be overriden.
@@ -151,7 +151,7 @@ var DelegatingServer = type(HeirarchicalServer, function() {
 	// or it calls emitRequest on this server if not delegated to another.
 	// the getChildName function is used to decide on the delegation process, so this function need not be overriden.
 	// This implementation will delegate if getChildName returns a non falsy value and a child already exists for that name
-	// delegation settings: 'no', 'all', 'preconfigured'
+	// the desirably delegation settings are : 'no', 'all', 'preconfigured', and the default here is 'preconfigured'.
 	this.delegateRequest = function(req, resp) {
 		var name = this.getChildName(req)
 		if (name && this.getChild(name)) {
@@ -188,7 +188,7 @@ exports.HttpServer = type(DelegatingServer, function() {
 	// these functions can be overriden to provide custom logic
 	
 	this.sendNone = function(req, resp) {
-		resp.writeHead(404)
+		resp.writeHead(404, { server: 'lightnode' })
 		resp.end()
 	}
 	
@@ -197,7 +197,7 @@ exports.HttpServer = type(DelegatingServer, function() {
 	}
 	
 	this.sendForbidden = function(req, resp) {
-		resp.writeHead(403)
+		resp.writeHead(403, { server: 'lightnode' })
 		resp.end()
 	}
 	
@@ -228,7 +228,7 @@ exports.FileServer = type(exports.HttpServer, function() {
 		]
 	}
 	
-	// heirarchy
+	// hierarchy
 	
 	this.constructChild = function(name) {
 		return new exports.FileServer(sys.path.join(this.fullName, name), name, this)
@@ -237,24 +237,35 @@ exports.FileServer = type(exports.HttpServer, function() {
 	// delegation
 		
 	this.getNextPathElement = function(req, resp) {
-		
+		// TODO I think this relies on the fullName vs name properties, which prob aren't very reliable.
 	}
 	
-	/* this.delegateRequest = function(req, resp) {
-		// if there is a delegate name and a corresponding child delegate to it
-	} */
+	// TODO use the result of getNextPathElement as the default child scheme
+	this.getChildName = function(req) {
+		// TODO
+		return null
+	}
 	
 	// serving
 	
 	this.serveRequest = function(req, resp) {
 		this.locate(req, resp)
 	}
-	
+		
+		// file caching (class level)
+		
+		var fileCache = {} // file path => exports.File
+		
+		var getFile = function(path) {
+			if (!fileCache[path])
+				fileCache[path] = new exports.File(path)
+			
+			return fileCache[path]
+		}
+				
 		// find the corresponding physical file based on the url as well as headers and file existance / characteristics
 		this.locate = function(req, resp) {
-			
-			// TODO we don't want to have to wait for a stat for every request, does the OS / node cache these ops?
-			
+						
 			var filename = this.translateUrl(req, resp)
 			
 			log("\t translating to filename " + filename)
@@ -268,10 +279,11 @@ exports.FileServer = type(exports.HttpServer, function() {
 				log("\t that file is outside of this file server")
 				return this.sendFile(req, resp)
 			}
-				
+			
 			// check that the file exists
 			var self = this
-			sys.fs.stat(filename, function(error, stat) {
+			var file = getFile(filename)
+			file.stat(function(error, stat) {
 				if (error) {
 					// if it doesn't exist, serve nothing
 					log("\t requested file doesn't exist")
@@ -280,7 +292,7 @@ exports.FileServer = type(exports.HttpServer, function() {
 				
 				else if (!stat.isDirectory()) {
 					log("\t serving " + filename)
-					return self.sendFile(req, resp, new exports.File(filename, stat))
+					return self.sendFile(req, resp, file)
 				}
 				
 				else if (stat.isDirectory()) {
@@ -291,14 +303,15 @@ exports.FileServer = type(exports.HttpServer, function() {
 					(function statNextFile() {
 						if (a < self.directoryIndices.length) {
 							indexFilename = sys.path.join(filename, self.directoryIndices[a++])
-							sys.fs.stat(indexFilename, function(error, stat) {
+							indexFile = getFile(indexFilename)
+							indexFile.stat(function(error, stat) {
 								if (error)
 									statNextFile()
 								else {
 									log("\t found an index file (" + indexFilename + ") for the directory")
 									// found an index file, serve it
 									// use set timeout to clear up the call stack a bit
-									setTimeout(function() { self.sendFile(req, resp, new exports.File(indexFilename, stat)) }, 0)
+									setTimeout(function() { self.sendFile(req, resp, indexFile) }, 0)
 								}
 							})
 						
@@ -321,46 +334,53 @@ exports.FileServer = type(exports.HttpServer, function() {
 			}
 		
 		
-	this.sendFile = function(req, resp, file) {
+	this.sendFile = function(req, resp, file) { var self = this
 		if (!file)
 			return this.sendNone(req, resp)
 			
 		log("\t sending file " + file.name)
 		// TODO allow customization of caching procedure (expiration), and allow usage of caching aspect in non file servers.
 		
-		// send headers
-		var headers = {}
-		var mimeTypes = this.mimeTypes
-		var ext = sys.path.extname(file.name).trim('.')
-		
-		if (ext in mimeTypes)
-			headers['content-type'] = mimeTypes[ext]
-		
-		headers['last-modified'] = new(Date)(file.stat.mtime).toUTCString()
-		headers['transfer-encoding'] = 'chunked'
-		
-		if (Date.parse(file.stat.mtime) <= Date.parse(req.headers['if-modified-since'])) {
-			resp.writeHead(304, headers)
-			resp.end()
-			return
-		}
-		else {
-			resp.writeHead(200, headers)
-			if (req.method == "HEAD")
+		file.stat(function(statErr) {
+			
+			if (statErr)
+				return self.sendNone(req, resp)
+			
+			// send headers
+			var headers = {}
+			var mimeTypes = self.mimeTypes
+			var ext = sys.path.extname(file.path).trim('.')
+			
+			if (ext in mimeTypes)
+				headers['content-type'] = mimeTypes[ext]
+			
+			headers['last-modified'] = new(Date)(file.header.mtime).toUTCString()
+			headers['transfer-encoding'] = 'chunked'
+			headers['server'] = 'lightnode'
+			
+			if (Date.parse(file.header.mtime) <= Date.parse(req.headers['if-modified-since'])) {
+				resp.writeHead(304, headers)
 				resp.end()
-			else {
-				// send contents
-				var self = this
-				sys.fs.readFile(file.name, function(err, data) {
-					if (err)
-						console.log(err)
-					//console.log('sending ' + data)
-					resp.write(data)
-					// end
-					resp.end()
-				})
+				return
 			}
-		}
+			else {
+				resp.writeHead(200, headers)
+				if (req.method == "HEAD")
+					resp.end()
+				else {
+					// send contents
+					file.readFile(function(err, data) {
+						if (err)
+							console.log(err)
+						//console.log('sending ' + data)
+						resp.write(data)
+						// end
+						resp.end()
+					})
+				}
+			}
+			
+		})
 	}
 
 		
@@ -388,10 +408,74 @@ exports.FileServer.MimeTypes = {
 	"gif": "image/gif"
 }
 
-// keeps a cache of the file stat and path (prob just for one request)
-exports.File = function(filename, stat) {
-	this.name = filename
-	this.stat = stat
+// Provides an interface to the file system for one file with the given name.
+// Will lazily fetch and cache the stat result for 0.5 seconds so you can just call stat() as frequently as needed from a frequently executed code block.
+// More importantly, the file contents itself will be lazily fetched and cached on calling readFile(),
+exports.File = function(filename) {
+	
+	this.path = filename
+	this.header = null
+	this.contents = null
+	
+	var statLastCalled = null
+	var statResult = null // 0: error, 1: stat
+	var statWaitors = []
+	
+	var hasCalledReadFile = false
+	var readFileWaitors = []
+	var readFileResult = null
+	
+	this.stat = function(F) {
+		var self = this
+		
+		// a 0.5 sec stat interval seems as efficient as a 5 second, it should be suitable for development and production.
+		if (statLastCalled && statLastCalled > Date.now() - 500) {
+			if (!statResult)
+				statWaitors.push(F)
+			else
+				F(statResult[0], statResult[1])
+		}
+		else {
+			statWaitors.push(F)
+			statLastCalled = Date.now()
+			statResult = null
+			sys.fs.stat(self.path, function() {
+				statResult = [arguments[0], arguments[1]]
+				if (arguments[1] && self.header && (arguments[1].mtime > self.header.mtime)) {
+					// invalidate the file contents that have been read. TODO what if readfile has been called before this, but has not returned till after this, is it the new contents that stat reflects or old?
+					hasCalledReadFile = false
+					readFileResult = null
+				}
+				self.header = arguments[1]
+				while(statWaitors.length > 0)
+					statWaitors.pop().call(null, arguments[0], arguments[1])
+			})
+		}
+	}
+	
+	this.readFile = function(F) {
+		// TODO we don't want to cache files that are too big.
+		var self = this
+		self.stat(noop)
+		if (hasCalledReadFile) {
+			if (!readFileResult)
+				readFileWaitors.push(F)
+			else
+				F(readFileResult[0], readFileResult[1])
+		}
+		else {
+			readFileWaitors.push(F)
+			hasCalledReadFile = true
+			sys.fs.readFile(this.path, function() {
+				hasCalledReadFile = true
+				readFileResult = [arguments[0], arguments[1]]
+				self.contents = arguments[1]
+				while(readFileWaitors.length > 0)
+					readFileWaitors.pop().call(null, arguments[0], arguments[1])
+			})
+		}
+	}
+	
 }
 
 function log(msg) {
@@ -405,7 +489,9 @@ function logError(msg) {
 
 log.on = false
 
-/* The type() function below is a gem from our Jay project. It is a radically different way of conceptualizing the creation of constructors and prototypes. */
+/* The type() function below is a gem from the Jay project. 
+	It's a novel way of conceptualizing the nature and creation of constructors and prototypes,
+	and acts as a simple common denominator in type declaration systems. */
 
 function type(parent, definition) {
 	// All that happens before the definition is a prototype object is created that inherits from the parent's prototype
@@ -430,3 +516,7 @@ function type(parent, definition) {
 	
 	return proto.constructor
 }
+
+// it's important to have a noop function, so you can pass the noop when a function is required as a parameter to another function,
+// and there is no need to create a new empty closure just to pass to the function, of course it's best if functions are designed so that they don't require you to give a function unnecessarily.
+function noop() {}

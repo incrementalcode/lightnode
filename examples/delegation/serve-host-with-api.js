@@ -1,6 +1,6 @@
 
 var http = require('http')
-var lightnode = require('code.ngspinners.com/lightnode/lightnode')
+var lightnode = require('../lightnode')
 
 
 // 1 - create and start the node ip server
@@ -11,6 +11,7 @@ var website = new lightnode.FileServer('/home/web/www.ngspinners.com')
 
 // before any requests come in
 
+// the delegateRequest function should just return the lightnode.HttpServer object that must emit (handle) the request, or a function to execute as the request listener.
 website.delegateRequest = function(req, resp) {
 
 	// 3 - requests starting with path '/api' are sent to the api server
@@ -21,9 +22,6 @@ website.delegateRequest = function(req, resp) {
 	// 4 - serve all other requests with this file server object
 	
 	else
-		// note: accidentally calling receiveRequest when delegating to self will cause an infinite loop
-		// perhaps delegate should just return the object to emit the request,
-		// if you want to delegate to a non lightnode server (no receiveRequest) then do the redirecting before sending to the server.
 		return website
 
 }
