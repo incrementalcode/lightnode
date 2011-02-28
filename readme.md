@@ -56,7 +56,17 @@ see the examples folder. The examples using the delegation mechanism are usually
 Installation
 ------------
 
-Just copy the lightnode.js file into your node library path (~/.node_libraries). 
-It's best if you do this by making a symlink from there to the repo, instead of copying, that way you can update the repo or make your own edits and the installed version reflects the changes immediately.
+*Using NPM*
 
-Support for npm will be added soon I suppose.
+npm install lightnode
+
+*Manually*
+
+Just copy the lightnode.js file into your node library path (~/.node_libraries). 
+It's best if you do this by making a symlink from there to the repo, instead of copying, 
+that way you can update the repo or make your own edits and the installed version reflects the changes immediately.
+
+*Usage*
+
+See the examples directory to learn the API, or look at lightnode.js.
+

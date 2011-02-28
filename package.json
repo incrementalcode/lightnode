@@ -1,0 +1,17 @@
+{
+	"name": "lightnode",
+	"description": "Simple framework powered by delegation and heirarchical servers, fast static file server.",
+	"version": "0.1.0",
+	"homepage": "http://www.ngspinners.com/lightnode",
+	"keywords": ["framework","static", "file server", "control", "caching", "vhost", "virtual host"],
+	"main": "lightnode",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ngspinners/lightnode.git"
+	},
+	"author": {
+		"name": "Tim Lind",
+		"email": "tim@ngtechnology.pro",
+		"url": "http://twitter.com/timlind"
+	}
+}
