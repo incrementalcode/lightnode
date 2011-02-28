@@ -51,3 +51,12 @@ see the examples folder. The examples using the delegation mechanism are usually
 * using delegation:
 * * a simple single host server with api route
 * * virtual hosting with api
+
+
+Installation
+------------
+
+Just copy the lightnode.js file into your node library path (~/.node_libraries). 
+It's best if you do this by making a symlink from there to the repo, instead of copying, that way you can update the repo or make your own edits and the installed version reflects the changes immediately.
+
+Support for npm will be added soon I suppose.
