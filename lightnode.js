@@ -349,7 +349,10 @@ exports.FileServer = type(exports.HttpServer, function() {
 			// send headers
 			var headers = {}
 			var mimeTypes = self.mimeTypes
-			var ext = sys.path.extname(file.path).trim('.')
+			var ext = sys.path.extname(file.path);
+			if (ext && ext.indexOf('.') === 0) {
+				ext = ext.slice(1);
+			}
 			
 			if (ext in mimeTypes)
 				headers['content-type'] = mimeTypes[ext]
