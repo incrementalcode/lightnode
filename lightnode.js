@@ -4,11 +4,11 @@
 
 
 var http = require('http')
-var sys = require('sys')
-sys.fs = require('fs')
-sys.path = require('path')
-sys.url = require('url')
-sys.events = require('events')
+var util = require('util')
+util.fs = require('fs')
+util.path = require('path')
+util.url = require('url')
+util.events = require('events')
 
 
 
@@ -18,10 +18,10 @@ sys.events = require('events')
 // in future it may emit events that indicate event reception / delegation,
 // so that the delegation logic can be applied through listeners as opposed requiring passage through hardcoded event reception functions,
 // until then the delegation system is only relevant to http servers (they have the request event).
-var EventEmitter = type(sys.events.EventEmitter, function() {
+var EventEmitter = type(util.events.EventEmitter, function() {
 	
 	this.constructor = function() {
-		sys.events.EventEmitter.call(this)
+		util.events.EventEmitter.call(this)
 	}
 	
 	// receive an event to emit, potentially delegating as opposed to emitting from this object
@@ -36,7 +36,7 @@ var EventEmitter = type(sys.events.EventEmitter, function() {
 
 	// emit an event to all of the event's listeners on this emitter
 	// this.emit = function(event /* , ... */) {
-	//	return sys.events.EventEmitter.prototype.emit.apply(this, arguments)
+	//	return util.events.EventEmitter.prototype.emit.apply(this, arguments)
 	// }
 	
 })
@@ -231,7 +231,7 @@ exports.FileServer = type(exports.HttpServer, function() {
 	// hierarchy
 	
 	this.constructChild = function(name) {
-		return new exports.FileServer(sys.path.join(this.fullName, name), name, this)
+		return new exports.FileServer(util.path.join(this.fullName, name), name, this)
 	}
 
 	// delegation
@@ -302,7 +302,7 @@ exports.FileServer = type(exports.HttpServer, function() {
 					var a = 0, indexFilename
 					(function statNextFile() {
 						if (a < self.directoryIndices.length) {
-							indexFilename = sys.path.join(filename, self.directoryIndices[a++])
+							indexFilename = util.path.join(filename, self.directoryIndices[a++])
 							indexFile = getFile(indexFilename)
 							indexFile.stat(function(error, stat) {
 								if (error)
@@ -330,7 +330,7 @@ exports.FileServer = type(exports.HttpServer, function() {
 		
 			// translate the url to the corresponding file
 			this.translateUrl = function(req, resp) {
-				return sys.path.join(this.fullName, sys.url.parse(req.url).pathname)
+				return util.path.join(this.fullName, util.url.parse(req.url).pathname)
 			}
 		
 		
@@ -349,7 +349,7 @@ exports.FileServer = type(exports.HttpServer, function() {
 			// send headers
 			var headers = {}
 			var mimeTypes = self.mimeTypes
-			var ext = sys.path.extname(file.path);
+			var ext = util.path.extname(file.path);
 			if (ext && ext.indexOf('.') === 0) {
 				ext = ext.slice(1);
 			}
@@ -442,7 +442,7 @@ exports.File = function(filename) {
 			statWaitors.push(F)
 			statLastCalled = Date.now()
 			statResult = null
-			sys.fs.stat(self.path, function() {
+			util.fs.stat(self.path, function() {
 				statResult = [arguments[0], arguments[1]]
 				if (arguments[1] && self.header && (arguments[1].mtime > self.header.mtime)) {
 					// invalidate the file contents that have been read. TODO what if readfile has been called before this, but has not returned till after this, is it the new contents that stat reflects or old?
@@ -469,7 +469,7 @@ exports.File = function(filename) {
 		else {
 			readFileWaitors.push(F)
 			hasCalledReadFile = true
-			sys.fs.readFile(this.path, function() {
+			util.fs.readFile(this.path, function() {
 				hasCalledReadFile = true
 				readFileResult = [arguments[0], arguments[1]]
 				self.contents = arguments[1]
