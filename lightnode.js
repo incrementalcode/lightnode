@@ -357,11 +357,12 @@ exports.FileServer = type(exports.HttpServer, function() {
 			if (ext in mimeTypes)
 				headers['content-type'] = mimeTypes[ext]
 			
-			headers['last-modified'] = new(Date)(file.header.mtime).toUTCString()
+			var dateModified = new(Date)(file.header.mtime).toUTCString()
+			headers['last-modified'] = dateModified
 			headers['transfer-encoding'] = 'chunked'
 			headers['server'] = 'lightnode'
 			
-			if (Date.parse(file.header.mtime) <= Date.parse(req.headers['if-modified-since'])) {
+			if (dateModified === req.headers['if-modified-since']) {
 				resp.writeHead(304, headers)
 				resp.end()
 				return
